@@ -1,3 +1,4 @@
-front-clase/node_modules
+frontend-clase/node_modules
 backend-clase/node_modules
-.env
+frontend-clase/.env
+backend-clase/.env
