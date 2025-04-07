@@ -1,18 +1,53 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import './Login.css'
 import ErrorForm from '../components/ErrorForm'
 
 function Login() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     usuario: '',
     password: ''
   });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Aquí irá la lógica de autenticación
-    console.log('Datos del formulario:', formData);
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await fetch('http://localhost:3000/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          username: formData.usuario,
+          password: formData.password
+        })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        // Login exitoso
+        console.log('Login exitoso:', data);
+        // Guardar datos del usuario en localStorage
+        localStorage.setItem('user', JSON.stringify(data.user));
+        // Redirigir al home
+        navigate('/');
+      } else {
+        // Error en el login
+        setError(data.message || 'Error en el login');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setError('Error al conectar con el servidor');
+    } finally {
+      setLoading(false);
+    }
   }
 
   const handleChange = (e) => {
@@ -30,6 +65,8 @@ function Login() {
           <p>Inicia sesión para continuar</p>
         </div>
         
+        {error && <ErrorForm message={error} />}
+        
         <form className='form-login' onSubmit={handleSubmit}>
           <div className='form-group'>
             <label htmlFor="usuario">Usuario</label>
@@ -40,7 +77,7 @@ function Login() {
               value={formData.usuario}
               onChange={handleChange}
               placeholder='Ingresa tu usuario'
-           
+              required
             />
           </div>
 
@@ -57,8 +94,12 @@ function Login() {
             />
           </div>
 
-          <button type='submit' className='btn-login'>
-            Iniciar Sesión
+          <button 
+            type="submit" 
+            className='btn-login'
+            disabled={loading}
+          >
+            {loading ? 'Cargando...' : 'Iniciar Sesión'}
           </button>
 
           <div className='login-footer'>
