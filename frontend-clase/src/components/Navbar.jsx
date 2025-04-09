@@ -1,41 +1,42 @@
-import { useState} from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import logo from '../assets/logo-itsa.png'
+import React from 'react'
+import { Link } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import { useNavigate } from 'react-router-dom'
 import './Navbar.css'
 
 function Navbar() {
-  const [showSubmenu, setShowSubmenu] = useState(false);
-
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const handleShowSubmenu = () => {
-    setShowSubmenu(!showSubmenu);
-  }
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   return (
-    <div className='container-nav'>
-      <div className='nav-left'>
-        <div className='nav-left-logo' onClick={() => navigate('/')}> 
-          <img src={logo} alt="logo" />
-        </div>
-        <ul className='nav-left-menu'>
-          <li className='nav-left-menu-config' onMouseEnter={handleShowSubmenu} onMouseLeave={handleShowSubmenu}>
-            <span>Configuracion</span>
-            <ul className={`nav-left-submenus ${showSubmenu ? 'show' : ''}`}>
-              <li>Parametros</li> 
-              <li>Usuarios</li>
-              <li>Roles</li>
-            </ul>
-          </li> 
-        </ul>
+    <nav className="navbar">
+      <div className="navbar-brand">
+        <Link to="/">Mi App</Link>
       </div>
-
-      <div className='nav-sesion-info'>
-        <Link className='btn-sesion-info' to='/login'>Login</Link>
-        <Link className='btn-sesion-info' to='/register'>Register</Link>
+      
+      <div className="navbar-links">
+        {user ? (
+          // Usuario autenticado
+          <div className="user-menu">
+            <span className="username">Hola, {user.username}</span>
+            <button onClick={handleLogout} className="btn-logout">
+              Cerrar sesión
+            </button>
+          </div>
+        ) : (
+          // Usuario no autenticado
+          <>
+            <Link to="/login" className="nav-link">Iniciar sesión</Link>
+            <Link to="/register" className="nav-link">Registrarse</Link>
+          </>
+        )}
       </div>
-        
-    </div>
+    </nav>
   )
 }
 

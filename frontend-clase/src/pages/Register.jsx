@@ -1,8 +1,12 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import './Register.css'
+import ErrorForm from '../components/ErrorForm'
+import { useAuth } from '../context/AuthContext'
 
 function Register() {
+  const navigate = useNavigate();
+  const { register, error: authError } = useAuth();
   const [formData, setFormData] = useState({
     nombre: '',
     apellido: '',
@@ -11,11 +15,31 @@ function Register() {
     password: '',
     confirmarPassword: ''
   });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Aquí irá la lógica de registro
-    console.log('Datos del formulario:', formData);
+    setError('');
+    setLoading(true);
+
+    // Validar que las contraseñas coincidan
+    if (formData.password !== formData.confirmarPassword) {
+      setError('Las contraseñas no coinciden');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // Llamar al servicio de registro
+      await register(formData.usuario, formData.password);
+      // Redirigir al login después del registro exitoso
+      navigate('/dashboard');
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   const handleChange = (e) => {
@@ -32,6 +56,8 @@ function Register() {
           <h1>Crear Cuenta</h1>
           <p>Regístrate para comenzar</p>
         </div>
+        
+        {(error || authError) && <ErrorForm message={error || authError} />}
         
         <form className='form-register' onSubmit={handleSubmit}>
           <div className='form-row'>
@@ -98,6 +124,7 @@ function Register() {
               onChange={handleChange}
               placeholder='Crea una contraseña segura'
               required
+              minLength={6}
             />
           </div>
 
@@ -111,15 +138,20 @@ function Register() {
               onChange={handleChange}
               placeholder='Confirma tu contraseña'
               required
+              minLength={6}
             />
           </div>
 
-          <button type='submit' className='btn-register'>
-            Crear Cuenta
+          <button 
+            type="submit" 
+            className='btn-register'
+            disabled={loading}
+          >
+            {loading ? 'Registrando...' : 'Registrarse'}
           </button>
 
           <div className='register-footer'>
-            <p>¿Ya tienes una cuenta? <Link to="/login">Inicia Sesión</Link></p>
+            <p>¿Ya tienes una cuenta? <Link to="/login">Inicia sesión</Link></p>
           </div>
         </form>
       </div>

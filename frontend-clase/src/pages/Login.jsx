@@ -2,49 +2,26 @@ import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import './Login.css'
 import ErrorForm from '../components/ErrorForm'
+import { useAuth } from '../context/AuthContext'
 
 function Login() {
   const navigate = useNavigate();
+  const { login, error: authError } = useAuth();
   const [formData, setFormData] = useState({
     usuario: '',
     password: ''
   });
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
-
     try {
-      const response = await fetch('http://localhost:3000/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          username: formData.usuario,
-          password: formData.password
-        })
-      });
-
-      const data = await response.json();
-      
-      if (response.ok) {
-        // Login exitoso
-        console.log('Login exitoso:', data);
-        // Guardar datos del usuario en localStorage
-        localStorage.setItem('user', JSON.stringify(data.user));
-        // Redirigir al home
-        navigate('/');
-      } else {
-        // Error en el login
-        setError(data.message || 'Error en el login');
-      }
+      await login(formData.usuario, formData.password);
+      console.log('Login exitoso');
+      navigate('/dashboard');
     } catch (error) {
-      console.error('Error:', error);
-      setError('Error al conectar con el servidor');
+      console.error('Error al iniciar sesión:', error);
     } finally {
       setLoading(false);
     }
@@ -65,7 +42,7 @@ function Login() {
           <p>Inicia sesión para continuar</p>
         </div>
         
-        {error && <ErrorForm message={error} />}
+        {authError && <ErrorForm message={authError} />}
         
         <form className='form-login' onSubmit={handleSubmit}>
           <div className='form-group'>
@@ -104,9 +81,6 @@ function Login() {
 
           <div className='login-footer'>
             <p>¿No tienes una cuenta? <Link to="/register">Regístrate</Link></p>
-            <Link to="/forgot-password" className='forgot-password'>
-              ¿Olvidaste tu contraseña?
-            </Link>
           </div>
         </form>
       </div>

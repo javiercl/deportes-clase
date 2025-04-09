@@ -11,21 +11,24 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Modelo de Usuario
-const userSchema = new mongoose.Schema({
-    username: { type: String, required: true, unique: true },
-    password: { type: String, required: true }
-});
-
-const User = mongoose.model("User", userSchema);
-
 // Conexión a MongoDB Atlas
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log("Conectado a MongoDB Atlas"))
-    .catch(err => console.error("Error conectando a MongoDB:", err));
+const connectDB = async () => {
+    try {
+        await mongoose.connect(process.env.MONGODB_URI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        });
+        console.log("Conectado a MongoDB Atlas");
+    } catch (err) {
+        console.error("Error conectando a MongoDB:", err);
+        process.exit(1);
+    }
+};
+
+connectDB();
 
 // Importar rutas
-const authRoutes = require('./src/routes/authRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 // Usar rutas
 app.use('/api', authRoutes);
@@ -44,4 +47,4 @@ app.use((err, req, res, next) => {
 // Iniciar el servidor
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
-});
+}); 
